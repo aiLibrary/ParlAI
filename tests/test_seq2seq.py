@@ -6,6 +6,13 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+if __name__ == '__main__':
+    # need to change start method for unit tests if cuda available
+    import torch
+    if torch.cuda.is_available():
+        from torch import multiprocessing
+        multiprocessing.set_start_method('forkserver')
+
 import unittest
 import io
 import contextlib
@@ -83,7 +90,7 @@ class TestSeq2Seq(unittest.TestCase):
             attention='general',
             gradient_clip=1.0,
             dropout=0.0,
-            lookuptable='all',
+            lookuptable='enc_dec',
         )
 
         self.assertTrue(

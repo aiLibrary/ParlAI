@@ -18,6 +18,11 @@ import torch.nn.functional as F
 from parlai.core.utils import NEAR_INF
 
 
+def identity(x):
+    """Identify function for passing through values."""
+    return x
+
+
 def opt_to_kwargs(opt):
     """Get kwargs for seq2seq from opt."""
     kwargs = {}
@@ -494,10 +499,11 @@ class OutputLayer(nn.Module):
                 shared_weight = shared_weight.narrow(0, 1, num_features)
             elif padding_idx > 0:
                 raise RuntimeError('nonzero pad_idx not yet implemented')
+
             self.weight = Parameter(shared_weight)
             self.bias = Parameter(torch.Tensor(num_features))
             self.reset_parameters()
-            self.e2s = lambda x: F.linear(x, self.weight, self.bias)
+            self.e2s = self.linear
 
         self.numsoftmax = numsoftmax
         if numsoftmax > 1:
@@ -513,7 +519,10 @@ class OutputLayer(nn.Module):
                 self.o2e = nn.Linear(hiddensize, embeddingsize, bias=True)
             else:
                 # no need for any transformation here
-                self.o2e = lambda x: x
+                self.o2e = identity
+
+    def linear(self, x):
+        return F.linear(x, self.weight, self.bias)
 
     def reset_parameters(self):
         """Reset bias param."""
