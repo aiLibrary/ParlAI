@@ -134,10 +134,6 @@ class Seq2seqAgent(TorchGeneratorAgent):
                 self._copy_embeddings(self.model.encoder.lt.weight,
                                       opt['embedding_type'], log=False)
 
-        if states:
-            # set loaded states if applicable
-            self.model.load_state_dict(states['model'])
-
         if self.use_cuda:
             self.model.cuda()
 
@@ -196,4 +192,8 @@ class Seq2seqAgent(TorchGeneratorAgent):
     def load(self, path):
         """Return opt and model states."""
         states = torch.load(path, map_location=lambda cpu, _: cpu)
+        # set loaded states if applicable
+        self.model.load_state_dict(states['model'])
+        if 'longest_label' in states:
+            self.model.longest_label = states['longest_label']
         return states
